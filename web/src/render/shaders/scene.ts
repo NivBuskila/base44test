@@ -37,6 +37,8 @@ uniform vec3 u_camTint;
 uniform vec3 u_camEdge;
 /** How hard the camera's toe is crushed: 1 buries the room, 0 leaves it linear. */
 uniform float u_camToe;
+/** 1 shows the feed as-is (full colour, no soft focus or rim); 0 treats it. */
+uniform float u_camRaw;
 uniform float u_dyeAmount;
 uniform float u_bgAmount;
 uniform float u_hasVideo;
@@ -182,8 +184,14 @@ void main() {
     // Mirrored horizontally: the engine's coordinate convention is the flipped
     // view the user sees, so a raw feed would make every gesture land on the
     // wrong side of the screen.
-    vec2 iuv = vec2(1.0 - v_uv.x, 1.0 - v_uv.y);
-    radiance += treatedCamera((iuv - 0.5) * u_camScale + 0.5);
+    vec2 iuv = (vec2(1.0 - v_uv.x, 1.0 - v_uv.y) - 0.5) * u_camScale + 0.5;
+    if (u_camRaw > 0.5) {
+      // The plain feed: decode the sRGB frame to linear and let the composite
+      // re-encode it. No luma collapse, no soft focus, no rim.
+      radiance += u_camTint * pow(texture(u_video, iuv).rgb, vec3(2.2));
+    } else {
+      radiance += treatedCamera(iuv);
+    }
   }
 
   if (u_dyeAmount > 0.0) radiance += dyeRadiance(duv) * u_dyeAmount;

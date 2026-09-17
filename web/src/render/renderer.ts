@@ -104,6 +104,8 @@ interface ModeStyle {
   camEdge: readonly [number, number, number];
   /** Camera toe strength; 1 buries the room, 0 leaves the feed linear. */
   camToe: number;
+  /** Show the feed untreated, in full colour. */
+  camRaw: boolean;
   particles: number;
   /** Hand skeleton overlay alpha. */
   overlay: number;
@@ -127,6 +129,7 @@ const STYLES: Record<ViewMode, ModeStyle> = {
     camTint: [0.0065, 0.0105, 0.0215],
     camEdge: [0.018, 0.048, 0.088],
     camToe: 1,
+    camRaw: false,
     particles: 1,
     overlay: 0.35,
     bloom: 0.95,
@@ -135,8 +138,8 @@ const STYLES: Record<ViewMode, ModeStyle> = {
     aberration: 0.55,
     vignette: 0.52,
   },
-  // Camera-forward: the feed is still treated, just not crushed, and the fluid
-  // becomes the faint overlay instead of the subject.
+  // Camera-forward: the real colour feed, and the fluid becomes the faint
+  // overlay instead of the subject.
   camera: {
     bg: 0.45,
     dye: 0.34,
@@ -144,6 +147,7 @@ const STYLES: Record<ViewMode, ModeStyle> = {
     camTint: [1.02, 1.0, 0.98],
     camEdge: [0.04, 0.09, 0.16],
     camToe: 0.2,
+    camRaw: true,
     particles: 0.4,
     overlay: 1.0,
     // The bloom knee is 0.7x the threshold, so at 0.9 anything above ~0.27
@@ -151,9 +155,11 @@ const STYLES: Record<ViewMode, ModeStyle> = {
     // highlights should bloom over a live feed.
     bloom: 0.15,
     threshold: 1.25,
-    exposure: 0.9,
-    aberration: 0.3,
-    vignette: 0.42,
+    // ACES lifts midtones; a touch under unity keeps the feed close to what
+    // the webcam itself shows.
+    exposure: 0.8,
+    aberration: 0,
+    vignette: 0.15,
   },
   // Particles on black, with the bloom pushed: this is the mode where the
   // point cloud has to carry the whole image on its own.
@@ -163,6 +169,7 @@ const STYLES: Record<ViewMode, ModeStyle> = {
     camTint: [0, 0, 0],
     camEdge: [0, 0, 0],
     camToe: 1,
+    camRaw: false,
     particles: 1.3,
     overlay: 0,
     bloom: 1.25,
@@ -179,6 +186,7 @@ const STYLES: Record<ViewMode, ModeStyle> = {
     camTint: [0, 0, 0],
     camEdge: [0, 0, 0],
     camToe: 1,
+    camRaw: false,
     particles: 0,
     overlay: 0,
     bloom: 0,
@@ -626,6 +634,7 @@ export class Renderer {
     p.f3('u_camTint', style.camTint[0], style.camTint[1], style.camTint[2]);
     p.f3('u_camEdge', style.camEdge[0], style.camEdge[1], style.camEdge[2]);
     p.f1('u_camToe', style.camToe);
+    p.f1('u_camRaw', style.camRaw ? 1 : 0);
     p.f2('u_videoTexel', 1 / Math.max(1, this.videoTexW), 1 / Math.max(1, this.videoTexH));
 
     // Cover fit: crop the long axis so the feed fills the canvas at its own
