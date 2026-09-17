@@ -140,14 +140,18 @@ const STYLES: Record<ViewMode, ModeStyle> = {
   camera: {
     bg: 0.45,
     dye: 0.34,
-    camTint: [0.98, 1.0, 1.06],
+    // Slightly warm to cancel the composite's cool split tone on a grey room.
+    camTint: [1.02, 1.0, 0.98],
     camEdge: [0.04, 0.09, 0.16],
-    camToe: 0.3,
+    camToe: 0.2,
     particles: 0.4,
     overlay: 1.0,
-    bloom: 0.45,
-    threshold: 0.9,
-    exposure: 1.0,
+    // The bloom knee is 0.7x the threshold, so at 0.9 anything above ~0.27
+    // radiance glowed and a lit wall hazed the whole frame. Only true
+    // highlights should bloom over a live feed.
+    bloom: 0.15,
+    threshold: 1.25,
+    exposure: 0.9,
     aberration: 0.3,
     vignette: 0.42,
   },
