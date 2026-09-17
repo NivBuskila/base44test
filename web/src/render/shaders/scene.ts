@@ -193,7 +193,13 @@ void main() {
       vec3 cam = u_camTint * pow(texture(u_video, iuv).rgb, vec3(2.2));
       // Dense dye occludes the feed like smoke instead of only adding to it:
       // purely additive fluid vanishes against a bright room.
-      radiance += cam * exp(-luma(dye) * 2.5);
+      // Dye density decides how much of the room survives. Multiplied, not
+      // added: the tone map is nearly saturated by the feed alone, so extra
+      // light there is invisible while removing light reads immediately.
+      radiance += cam * exp(-luma(dye) * 9.0);
+      // Boost the fluid's own light in the same measure, so what it covers it
+      // replaces rather than merely dimming the picture.
+      dye *= 2.2;
     } else {
       radiance += treatedCamera(iuv);
     }

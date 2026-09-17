@@ -143,8 +143,10 @@ const STYLES: Record<ViewMode, ModeStyle> = {
   camera: {
     bg: 0.45,
     dye: 1.0,
-    // Slightly warm to cancel the composite's cool split tone on a grey room.
-    camTint: [1.02, 1.0, 0.98],
+    // Slightly warm to cancel the composite's cool split tone on a grey room,
+    // and held under unity so the fluid has somewhere to go: a room exposed to
+    // the top of the tone map leaves the field no visible headroom.
+    camTint: [0.80, 0.79, 0.77],
     camEdge: [0.04, 0.09, 0.16],
     camToe: 0.2,
     camRaw: true,
