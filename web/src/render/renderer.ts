@@ -140,8 +140,8 @@ const STYLES: Record<ViewMode, ModeStyle> = {
   camera: {
     bg: 0.45,
     dye: 0.34,
-    camTint: [0.85, 0.96, 1.18],
-    camEdge: [0.05, 0.13, 0.24],
+    camTint: [0.98, 1.0, 1.06],
+    camEdge: [0.04, 0.09, 0.16],
     camToe: 0.3,
     particles: 0.4,
     overlay: 1.0,

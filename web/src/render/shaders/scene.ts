@@ -148,6 +148,13 @@ vec3 treatedCamera(vec2 iuv) {
   float soft = (2.0 * c + xl + xr + yd + yu) * (1.0 / 6.0);
   float edge = min(1.0, (abs(xr - xl) + abs(yu - yd)) * 1.7);
   float body = mix(soft, soft * soft * (0.40 + 0.60 * soft), u_camToe);
+  // The feed is sRGB-encoded, but everything past this point is linear
+  // radiance that the final pass re-encodes. Left as-is the camera gets the
+  // transfer twice and turns into a flat, milky wash. The toe is tuned on the
+  // encoded value (it is a perceptual crush), so the decode is applied to the
+  // part of the feed the toe leaves alone: toe 1 is unchanged, toe 0 is a
+  // properly linear feed.
+  body = mix(pow(body, 2.2), body, u_camToe);
   return u_camTint * body + u_camEdge * edge;
 }
 
