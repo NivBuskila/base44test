@@ -367,7 +367,11 @@ impl Engine {
                 .add_force(x, y, dir.cos() * mag, dir.sin() * mag, 12.0);
             let hue = 0.55 + 0.12 * (t * 0.05 + k as f32 * 0.33).sin();
             let rgb = hue_to_rgb(hue);
-            let amount = 0.03 * dt * 60.0;
+            // The field settles at roughly amount / dye_dissipation, so this is
+            // scaled by the decay rate: without it, slowing decay to let hand
+            // plumes travel also lets these idle blobs pile up into a flat wash
+            // over the whole frame.
+            let amount = 0.03 * self.params.dye_dissipation * dt * 60.0;
             self.fluid.add_dye(
                 x,
                 y,

@@ -112,7 +112,7 @@ impl Default for Params {
             // disease: dye died within a hand's width of the palm, so the field
             // read as a glow stuck to the hand rather than smoke crossing the
             // room. Slow enough now for a plume to actually travel.
-            dye_dissipation: 0.35,
+            dye_dissipation: 0.6,
             pressure_iters: 28,
             vorticity: 14.0,
             viscosity: 0.000_02,
