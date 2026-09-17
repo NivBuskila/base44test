@@ -130,6 +130,10 @@ pub struct Engine {
     frame: u32,
     /// Seconds since any hand, pose or mask arrived.
     since_perception: f32,
+    /// Seconds since a camera frame arrived, tracked separately from
+    /// perception: a live feed with nobody recognised in it still means the
+    /// canvas is not blank, which is the only thing ambient exists to fix.
+    since_luma: f32,
     stats: Stats,
     report: SpellReport,
     seed: u64,
@@ -161,6 +165,7 @@ impl Engine {
             time: 0.0,
             frame: 0,
             since_perception: f32::MAX / 4.0,
+            since_luma: f32::MAX / 4.0,
             stats: Stats {
                 time_scale: 1.0,
                 ..Default::default()
@@ -230,6 +235,7 @@ impl Engine {
         let luma = core::mem::take(&mut self.luma);
         self.flow.update(&luma, dt);
         self.luma = luma;
+        self.since_luma = 0.0;
     }
 
     /// Consumes `w * h` floats from the mask buffer as the body silhouette.
@@ -271,6 +277,7 @@ impl Engine {
         self.flow.reset();
         self.spell_state.reset();
         self.since_perception = f32::MAX / 4.0;
+        self.since_luma = f32::MAX / 4.0;
     }
 
     // ----------------------------------------------------------------- step
@@ -281,6 +288,7 @@ impl Engine {
         self.time += real_dt;
         self.frame = self.frame.wrapping_add(1);
         self.since_perception += real_dt;
+        self.since_luma += real_dt;
 
         // The two-hand time-warp gesture scales simulated time, not real time,
         // so the frame pacing and the perception clocks stay untouched.
@@ -288,7 +296,10 @@ impl Engine {
 
         self.body.decay(real_dt);
 
-        let ambient = self.since_perception > AMBIENT_AFTER;
+        // A live camera disqualifies ambient even when nothing is recognised in
+        // it: drifting dye blobs over a real room just fog the picture.
+        let ambient =
+            self.since_perception > AMBIENT_AFTER && self.since_luma > AMBIENT_AFTER;
         if ambient {
             self.drive_ambient(warped_dt);
         }
