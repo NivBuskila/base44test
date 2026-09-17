@@ -180,6 +180,8 @@ void main() {
     radiance += base * u_bgAmount;
   }
 
+  vec3 dye = u_dyeAmount > 0.0 ? dyeRadiance(duv) * u_dyeAmount : vec3(0.0);
+
   if (u_hasVideo > 0.5) {
     // Mirrored horizontally: the engine's coordinate convention is the flipped
     // view the user sees, so a raw feed would make every gesture land on the
@@ -188,13 +190,16 @@ void main() {
     if (u_camRaw > 0.5) {
       // The plain feed: decode the sRGB frame to linear and let the composite
       // re-encode it. No luma collapse, no soft focus, no rim.
-      radiance += u_camTint * pow(texture(u_video, iuv).rgb, vec3(2.2));
+      vec3 cam = u_camTint * pow(texture(u_video, iuv).rgb, vec3(2.2));
+      // Dense dye occludes the feed like smoke instead of only adding to it:
+      // purely additive fluid vanishes against a bright room.
+      radiance += cam * exp(-luma(dye) * 2.5);
     } else {
       radiance += treatedCamera(iuv);
     }
   }
 
-  if (u_dyeAmount > 0.0) radiance += dyeRadiance(duv) * u_dyeAmount;
+  radiance += dye;
 
 #if HDR_FLOAT
   o_color = vec4(radiance, 1.0);
